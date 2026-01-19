@@ -4,6 +4,7 @@ let nextFlagIndex = -1;
 let score = 0;
 let streak = 0;
 let gameStarted = false;
+let usedIndices = []; // Track which countries have been shown in current loop
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadQuestion();
@@ -93,10 +94,12 @@ function initializeGame() {
     score = 0;
     streak = 0;
     gameStarted = true;
+    usedIndices = []; // Reset used indices for new game
     updateScore();
     
     // Start with a random flag
     currentFlagIndex = Math.floor(Math.random() * choices.length);
+    usedIndices.push(currentFlagIndex);
     showCurrentFlag();
     
     // Get next flag (different from current)
@@ -123,13 +126,30 @@ function showCurrentFlag() {
 }
 
 function getNextFlag() {
-    // Get a random flag that's different from the current one
-    let next;
-    do {
-        next = Math.floor(Math.random() * choices.length);
-    } while (next === currentFlagIndex && choices.length > 1);
+    // Get a flag that hasn't been used in this loop
+    // If all flags have been used, reset the used list
+    if (usedIndices.length >= choices.length) {
+        usedIndices = [];
+    }
     
-    nextFlagIndex = next;
+    // Get available indices (not used and not current)
+    const availableIndices = choices
+        .map((_, index) => index)
+        .filter(index => !usedIndices.includes(index) && index !== currentFlagIndex);
+    
+    // If no available indices (shouldn't happen), reset and exclude current
+    if (availableIndices.length === 0) {
+        usedIndices = [];
+        const allExceptCurrent = choices
+            .map((_, index) => index)
+            .filter(index => index !== currentFlagIndex);
+        nextFlagIndex = allExceptCurrent[Math.floor(Math.random() * allExceptCurrent.length)];
+    } else {
+        // Pick randomly from available indices
+        nextFlagIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+    }
+    
+    usedIndices.push(nextFlagIndex);
     const nextFlag = choices[nextFlagIndex];
     
     const img = document.getElementById('nextFlagImg');
@@ -229,11 +249,11 @@ function makeChoice(choice) {
     setTimeout(() => {
         resultOverlay.style.display = 'none';
         
-        // Move next flag to current
+        // Move next flag to current (it's already in usedIndices)
         currentFlagIndex = nextFlagIndex;
         showCurrentFlag();
         
-        // Get new next flag
+        // Get new next flag (will exclude all used flags)
         getNextFlag();
         
         // Hide the reveal number again for the new next flag

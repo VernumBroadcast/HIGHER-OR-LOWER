@@ -1,13 +1,13 @@
 Australia|flags/AUS.png
 Bahrain|flags/BHR.png
 China|flags/CHN.png
-Hong Kong|flags/HKG.png
+Hong Kong - China|flags/HKG.png
 India|flags/IND.png
 Iraq|flags/IRA.png
 Iran|flags/IRN.png
 Jordan|flags/JOR.png
 Japan|flags/JPN.png
-South Korea|flags/KOR.png
+Korea|flags/KOR.png
 Saudi Arabia|flags/KSA.png
 Kuwait|flags/KUW.png
 Oman|flags/OMA.png
