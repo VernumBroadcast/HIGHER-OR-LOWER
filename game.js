@@ -47,11 +47,16 @@ async function loadChoices() {
         const response = await fetch('/api/config');
         const data = await response.json();
         
-        if (response.ok && data.choices && data.choices.length > 0) {
-            choices = data.choices;
-            // Also save to localStorage as backup
-            localStorage.setItem('higherLowerChoices', JSON.stringify(choices));
-            return;
+        if (response.ok) {
+            // Check if we have choices from server
+            if (data.choices && data.choices.length > 0) {
+                choices = data.choices;
+                // Also save to localStorage as backup
+                localStorage.setItem('higherLowerChoices', JSON.stringify(choices));
+                return;
+            }
+            // If server returns empty choices, try localStorage
+            console.log('Server returned empty choices, checking localStorage...');
         }
     } catch (error) {
         console.error('Error loading choices from server:', error);
@@ -65,15 +70,18 @@ async function loadChoices() {
             if (choices.length === 0) {
                 alert('No choices configured. Please go to the admin page to add choices.');
                 window.location.href = 'index.html';
+                return;
             }
+            // We have choices from localStorage, use them
+            return;
         } catch (e) {
-            alert('Error loading choices. Please configure them in the admin page.');
-            window.location.href = 'index.html';
+            console.error('Error parsing localStorage choices:', e);
         }
-    } else {
-        alert('No choices configured. Please go to the admin page to add choices.');
-        window.location.href = 'index.html';
     }
+    
+    // No choices found anywhere
+    alert('No choices configured. Please go to the admin page to add choices.');
+    window.location.href = 'index.html';
 }
 
 function initializeGame() {

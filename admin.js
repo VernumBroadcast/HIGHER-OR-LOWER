@@ -382,42 +382,48 @@ async function loadConfiguration() {
         const response = await fetch('/api/config');
         const data = await response.json();
         
-        if (response.ok && data.choices && data.choices.length > 0) {
-            // Load from server
-            const container = document.getElementById('choicesContainer');
-            container.innerHTML = '';
-            choiceCount = 0;
+        if (response.ok) {
+            // Check if we have data from server
+            if (data.choices && data.choices.length > 0) {
+                // Load from server
+                const container = document.getElementById('choicesContainer');
+                container.innerHTML = '';
+                choiceCount = 0;
 
-            if (data.question) {
-                document.getElementById('questionInput').value = data.question;
-            }
+                if (data.question) {
+                    document.getElementById('questionInput').value = data.question;
+                }
 
-            data.choices.forEach(choice => {
-                // Handle old format (with just "name") by converting to new format
-                if (choice.name && !choice.flagPath) {
-                    choice.flagPath = choice.name;
-                    if (!choice.country) {
-                        choice.country = choice.name.split('/').pop().split('.')[0] || '';
+                data.choices.forEach(choice => {
+                    // Handle old format (with just "name") by converting to new format
+                    if (choice.name && !choice.flagPath) {
+                        choice.flagPath = choice.name;
+                        if (!choice.country) {
+                            choice.country = choice.name.split('/').pop().split('.')[0] || '';
+                        }
                     }
-                }
-                // If ranking exists but no revealNumber, use ranking as revealNumber
-                if (choice.ranking && !choice.revealNumber) {
-                    choice.revealNumber = choice.ranking;
-                }
-                // If country exists but not in registered flags, add it temporarily
-                if (choice.country && !registeredFlags.find(f => f.country === choice.country)) {
-                    registeredFlags.push({ country: choice.country, path: choice.flagPath || choice.name });
-                    saveRegisteredFlags();
-                }
-                addChoiceField(choice);
-            });
+                    // If ranking exists but no revealNumber, use ranking as revealNumber
+                    if (choice.ranking && !choice.revealNumber) {
+                        choice.revealNumber = choice.ranking;
+                    }
+                    // If country exists but not in registered flags, add it temporarily
+                    if (choice.country && !registeredFlags.find(f => f.country === choice.country)) {
+                        registeredFlags.push({ country: choice.country, path: choice.flagPath || choice.name });
+                        saveRegisteredFlags();
+                    }
+                    addChoiceField(choice);
+                });
 
-            // Also save to localStorage as backup
-            localStorage.setItem('higherLowerChoices', JSON.stringify(data.choices));
-            localStorage.setItem('higherLowerQuestion', data.question || '');
-            
-            showMessage('Configuration loaded from server!', 'success');
-            return;
+                // Also save to localStorage as backup
+                localStorage.setItem('higherLowerChoices', JSON.stringify(data.choices));
+                localStorage.setItem('higherLowerQuestion', data.question || '');
+                
+                showMessage('Configuration loaded from server!', 'success');
+                return;
+            } else {
+                // Server connected but no data - this is normal for first time setup
+                console.log('Server connected but no configuration found. Using localStorage or starting fresh.');
+            }
         }
     } catch (error) {
         console.error('Error loading from server:', error);

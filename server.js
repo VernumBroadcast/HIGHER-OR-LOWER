@@ -126,8 +126,10 @@ app.get('/game.html', (req, res) => {
 });
 
 // Start server
-initDatabase().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  if (!process.env.DATABASE_URL) {
+    console.warn('⚠️  WARNING: DATABASE_URL not set. Add a PostgreSQL database in Railway to enable cross-device sync.');
+  }
+  initDatabase();
 });
