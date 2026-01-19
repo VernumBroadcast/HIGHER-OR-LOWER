@@ -5,9 +5,9 @@ let score = 0;
 let streak = 0;
 let gameStarted = false;
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadQuestion();
-    loadChoices();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadQuestion();
+    await loadChoices();
     initializeGame();
     
     document.getElementById('higherBtn').addEventListener('click', () => makeChoice('higher'));
@@ -15,7 +15,23 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('lowerBtn').addEventListener('click', () => makeChoice('lower'));
 });
 
-function loadQuestion() {
+async function loadQuestion() {
+    try {
+        const response = await fetch('/api/config');
+        const data = await response.json();
+        
+        if (response.ok && data.question) {
+            const questionHeader = document.getElementById('questionHeader');
+            questionHeader.textContent = data.question;
+            // Also save to localStorage as backup
+            localStorage.setItem('higherLowerQuestion', data.question);
+            return;
+        }
+    } catch (error) {
+        console.error('Error loading question from server:', error);
+    }
+    
+    // Fallback to localStorage
     const savedQuestion = localStorage.getItem('higherLowerQuestion');
     const questionHeader = document.getElementById('questionHeader');
     if (savedQuestion) {
@@ -25,7 +41,23 @@ function loadQuestion() {
     }
 }
 
-function loadChoices() {
+async function loadChoices() {
+    try {
+        // Try to load from server first
+        const response = await fetch('/api/config');
+        const data = await response.json();
+        
+        if (response.ok && data.choices && data.choices.length > 0) {
+            choices = data.choices;
+            // Also save to localStorage as backup
+            localStorage.setItem('higherLowerChoices', JSON.stringify(choices));
+            return;
+        }
+    } catch (error) {
+        console.error('Error loading choices from server:', error);
+    }
+    
+    // Fallback to localStorage
     const saved = localStorage.getItem('higherLowerChoices');
     if (saved) {
         try {

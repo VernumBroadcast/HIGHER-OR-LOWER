@@ -16,7 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeAllFlags();
 
     // Load saved configuration on page load
-    loadConfiguration();
+    loadConfiguration().catch(err => {
+        console.error('Error loading configuration:', err);
+    });
 
     addBtn.addEventListener('click', () => {
         if (choiceCount < MAX_CHOICES) {
@@ -302,7 +304,7 @@ function updateIndices() {
     });
 }
 
-function saveConfiguration() {
+async function saveConfiguration() {
     const question = document.getElementById('questionInput').value.trim();
     const choices = [];
     const choiceItems = document.querySelectorAll('.choice-item');
@@ -316,7 +318,7 @@ function saveConfiguration() {
         const revealNumber = parseInt(inputs[0].value);
         // Ranking is automatically calculated from reveal number (lower number = higher rank)
         const ranking = revealNumber;
-
+        
         if (country && flagPath && !isNaN(revealNumber)) {
             choices.push({
                 country: country,
@@ -336,18 +338,86 @@ function saveConfiguration() {
     // Sort by ranking for easier management
     choices.sort((a, b) => a.ranking - b.ranking);
 
-    // Save both question and choices
-    const config = {
-        question: question || 'Which is higher or lower?',
-        choices: choices
-    };
+    // Save to server
+    try {
+        const response = await fetch('/api/config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                question: question || 'Which is higher or lower?',
+                choices: choices
+            })
+        });
 
-    localStorage.setItem('higherLowerChoices', JSON.stringify(choices));
-    localStorage.setItem('higherLowerQuestion', question || 'Which is higher or lower?');
-    showMessage('Configuration saved successfully!', 'success');
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Also save to localStorage as backup
+            localStorage.setItem('higherLowerChoices', JSON.stringify(choices));
+            localStorage.setItem('higherLowerQuestion', question || 'Which is higher or lower?');
+            showMessage('Configuration saved successfully!', 'success');
+        } else {
+            throw new Error(data.error || 'Failed to save');
+        }
+    } catch (error) {
+        console.error('Error saving to server:', error);
+        // Fallback to localStorage if server fails
+        localStorage.setItem('higherLowerChoices', JSON.stringify(choices));
+        localStorage.setItem('higherLowerQuestion', question || 'Which is higher or lower?');
+        showMessage('Saved locally (server unavailable). Configuration will sync when server is available.', 'error');
+    }
 }
 
-function loadConfiguration() {
+async function loadConfiguration() {
+    try {
+        // Try to load from server first
+        const response = await fetch('/api/config');
+        const data = await response.json();
+        
+        if (response.ok && data.choices && data.choices.length > 0) {
+            // Load from server
+            const container = document.getElementById('choicesContainer');
+            container.innerHTML = '';
+            choiceCount = 0;
+
+            if (data.question) {
+                document.getElementById('questionInput').value = data.question;
+            }
+
+            data.choices.forEach(choice => {
+                // Handle old format (with just "name") by converting to new format
+                if (choice.name && !choice.flagPath) {
+                    choice.flagPath = choice.name;
+                    if (!choice.country) {
+                        choice.country = choice.name.split('/').pop().split('.')[0] || '';
+                    }
+                }
+                // If ranking exists but no revealNumber, use ranking as revealNumber
+                if (choice.ranking && !choice.revealNumber) {
+                    choice.revealNumber = choice.ranking;
+                }
+                // If country exists but not in registered flags, add it temporarily
+                if (choice.country && !registeredFlags.find(f => f.country === choice.country)) {
+                    registeredFlags.push({ country: choice.country, path: choice.flagPath || choice.name });
+                    saveRegisteredFlags();
+                }
+                addChoiceField(choice);
+            });
+
+            // Also save to localStorage as backup
+            localStorage.setItem('higherLowerChoices', JSON.stringify(data.choices));
+            localStorage.setItem('higherLowerQuestion', data.question || '');
+            
+            showMessage('Configuration loaded from server!', 'success');
+            return;
+        }
+    } catch (error) {
+        console.error('Error loading from server:', error);
+    }
+    
+    // Fallback to localStorage if server fails or no data
     const saved = localStorage.getItem('higherLowerChoices');
     const savedQuestion = localStorage.getItem('higherLowerQuestion');
     
@@ -382,10 +452,8 @@ function loadConfiguration() {
                 }
                 addChoiceField(choice);
             });
-            
-            // Update flags list display
 
-            showMessage('Configuration loaded successfully!', 'success');
+            showMessage('Configuration loaded from local storage!', 'success');
         } catch (e) {
             showMessage('Error loading configuration', 'error');
         }
