@@ -127,29 +127,33 @@ function showCurrentFlag() {
 
 function getNextFlag() {
     // Get a flag that hasn't been used in this loop
-    // If all flags have been used, reset the used list
-    if (usedIndices.length >= choices.length) {
-        usedIndices = [];
-    }
+    // Exclude current flag from selection
+    const excludeIndices = [...usedIndices, currentFlagIndex];
     
     // Get available indices (not used and not current)
     const availableIndices = choices
         .map((_, index) => index)
-        .filter(index => !usedIndices.includes(index) && index !== currentFlagIndex);
+        .filter(index => !excludeIndices.includes(index));
     
-    // If no available indices (shouldn't happen), reset and exclude current
+    // If all other countries have been shown, reset and start a new loop
     if (availableIndices.length === 0) {
-        usedIndices = [];
+        // Reset used list, but keep current flag excluded
+        usedIndices = [currentFlagIndex];
+        // Get all indices except current
         const allExceptCurrent = choices
             .map((_, index) => index)
             .filter(index => index !== currentFlagIndex);
+        // Pick randomly from remaining countries
         nextFlagIndex = allExceptCurrent[Math.floor(Math.random() * allExceptCurrent.length)];
     } else {
-        // Pick randomly from available indices
+        // Pick randomly from available indices (countries not yet shown)
         nextFlagIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
     }
     
-    usedIndices.push(nextFlagIndex);
+    // Add to used list (but don't add currentFlagIndex if it's already there)
+    if (!usedIndices.includes(nextFlagIndex)) {
+        usedIndices.push(nextFlagIndex);
+    }
     const nextFlag = choices[nextFlagIndex];
     
     const img = document.getElementById('nextFlagImg');
@@ -249,11 +253,12 @@ function makeChoice(choice) {
     setTimeout(() => {
         resultOverlay.style.display = 'none';
         
-        // Move next flag to current (it's already in usedIndices)
+        // Move next flag to current
+        // The nextFlagIndex is already in usedIndices, so it won't be selected again
         currentFlagIndex = nextFlagIndex;
         showCurrentFlag();
         
-        // Get new next flag (will exclude all used flags)
+        // Get new next flag (will exclude all used flags including the new current)
         getNextFlag();
         
         // Hide the reveal number again for the new next flag
