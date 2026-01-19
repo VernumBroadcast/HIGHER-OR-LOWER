@@ -306,6 +306,31 @@ h1 {
     background: #e68900;
 }
 
+.config-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-export {
+    background: #9c27b0;
+    color: white;
+}
+
+.btn-export:hover {
+    background: #7b1fa2;
+}
+
+.btn-import {
+    background: #00bcd4;
+    color: white;
+}
+
+.btn-import:hover {
+    background: #0097a7;
+}
+
 .btn-play {
     display: inline-block;
     background: #9c27b0;

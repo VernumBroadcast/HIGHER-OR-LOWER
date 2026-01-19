@@ -25,11 +25,16 @@
             </div>
             
             <div class="action-buttons">
-                <button type="button" id="addChoiceBtn" class="btn btn-add">Add Choice</button>
-                <button type="button" id="addAllBtn" class="btn btn-add-all">Add All Countries</button>
+            <button type="button" id="addChoiceBtn" class="btn btn-add">Add Choice</button>
+            <button type="button" id="addAllBtn" class="btn btn-add-all">Add All Countries</button>
             </div>
-            <button type="submit" class="btn btn-save">Save Configuration</button>
-            <button type="button" id="loadBtn" class="btn btn-load">Load Configuration</button>
+            <div class="config-actions">
+                <button type="submit" class="btn btn-save">Save Configuration</button>
+                <button type="button" id="loadBtn" class="btn btn-load">Load Configuration</button>
+                <button type="button" id="exportBtn" class="btn btn-export">Export Configuration</button>
+                <button type="button" id="importBtn" class="btn btn-import">Import Configuration</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;">
+            </div>
         </form>
 
         <div id="message" class="message"></div>

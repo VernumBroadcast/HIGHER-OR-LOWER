@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const addAllBtn = document.getElementById('addAllBtn');
     const form = document.getElementById('adminForm');
     const loadBtn = document.getElementById('loadBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const importFile = document.getElementById('importFile');
 
     // Auto-register all 15 flags on page load
     initializeAllFlags();
@@ -34,6 +37,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadBtn.addEventListener('click', () => {
         loadConfiguration();
+    });
+
+    exportBtn.addEventListener('click', () => {
+        exportConfiguration();
+    });
+
+    importBtn.addEventListener('click', () => {
+        importFile.click();
+    });
+
+    importFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            importConfiguration(file);
+        }
     });
 });
 
@@ -375,6 +393,114 @@ function loadConfiguration() {
         // Add one empty choice field by default
         addChoiceField();
     }
+}
+
+function exportConfiguration() {
+    try {
+        const question = document.getElementById('questionInput').value.trim();
+        const choices = [];
+        const choiceItems = document.querySelectorAll('.choice-item');
+
+        choiceItems.forEach(item => {
+            const countrySelect = item.querySelector('.country-select');
+            const flagInput = item.querySelector('.flag-path-readonly');
+            const inputs = item.querySelectorAll('input[type="number"]');
+            const country = countrySelect ? countrySelect.value.trim() : '';
+            const flagPath = flagInput ? flagInput.value.trim() : '';
+            const revealNumber = parseInt(inputs[0].value);
+            
+            if (country && flagPath && !isNaN(revealNumber)) {
+                choices.push({
+                    country: country,
+                    flagPath: flagPath,
+                    ranking: revealNumber, // Ranking equals reveal number
+                    revealNumber: revealNumber
+                });
+            }
+        });
+
+        if (choices.length === 0) {
+            showMessage('No choices to export. Please add countries first.', 'error');
+            return;
+        }
+
+        const config = {
+            question: question || 'Which is higher or lower?',
+            choices: choices,
+            exportedAt: new Date().toISOString(),
+            version: '1.0'
+        };
+
+        const json = JSON.stringify(config, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `higher-lower-config-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        showMessage('Configuration exported successfully!', 'success');
+    } catch (error) {
+        console.error('Error exporting configuration:', error);
+        showMessage('Error exporting configuration: ' + error.message, 'error');
+    }
+}
+
+function importConfiguration(file) {
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        try {
+            const config = JSON.parse(e.target.result);
+            
+            // Validate config structure
+            if (!config.choices || !Array.isArray(config.choices)) {
+                showMessage('Invalid configuration file format', 'error');
+                return;
+            }
+
+            // Clear existing choices
+            const container = document.getElementById('choicesContainer');
+            container.innerHTML = '';
+            choiceCount = 0;
+
+            // Set question
+            if (config.question) {
+                document.getElementById('questionInput').value = config.question;
+            }
+
+            // Add imported choices
+            config.choices.forEach(choice => {
+                // Ensure ranking is set from revealNumber if missing
+                if (!choice.ranking && choice.revealNumber) {
+                    choice.ranking = choice.revealNumber;
+                }
+                addChoiceField(choice);
+            });
+
+            // Update dropdowns
+            updateAllCountryDropdowns();
+
+            showMessage(`Imported ${config.choices.length} countries successfully!`, 'success');
+            
+            // Clear file input
+            importFile.value = '';
+        } catch (error) {
+            console.error('Error importing configuration:', error);
+            showMessage('Error importing configuration: ' + error.message, 'error');
+            importFile.value = '';
+        }
+    };
+    
+    reader.onerror = function() {
+        showMessage('Error reading file', 'error');
+        importFile.value = '';
+    };
+    
+    reader.readAsText(file);
 }
 
 function showMessage(text, type) {
