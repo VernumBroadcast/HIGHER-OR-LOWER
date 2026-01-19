@@ -12,13 +12,28 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 // Database connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
-});
+let pool = null;
+
+if (process.env.DATABASE_URL) {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+  });
+  
+  pool.on('error', (err) => {
+    console.error('Unexpected error on idle client', err);
+  });
+} else {
+  console.warn('DATABASE_URL not set. Configuration will not persist across devices.');
+}
 
 // Initialize database table
 async function initDatabase() {
+  if (!pool) {
+    console.warn('No database connection. Using in-memory storage (not persistent).');
+    return;
+  }
+  
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS configurations (
@@ -29,16 +44,26 @@ async function initDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('Database initialized');
+    console.log('Database initialized successfully');
   } catch (error) {
     console.error('Database initialization error:', error);
+    console.error('Configuration will not persist. Please check DATABASE_URL.');
   }
 }
 
 // API Routes
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', database: pool ? 'connected' : 'not connected' });
+});
+
 // Get current configuration
 app.get('/api/config', async (req, res) => {
+  if (!pool) {
+    return res.json({ question: null, choices: [], error: 'Database not configured' });
+  }
+  
   try {
     const result = await pool.query(
       'SELECT question, choices FROM configurations ORDER BY updated_at DESC LIMIT 1'
@@ -54,12 +79,17 @@ app.get('/api/config', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching config:', error);
-    res.status(500).json({ error: 'Failed to fetch configuration' });
+    // If database error, return empty config instead of error
+    res.json({ question: null, choices: [], error: error.message });
   }
 });
 
 // Save configuration
 app.post('/api/config', async (req, res) => {
+  if (!pool) {
+    return res.status(503).json({ error: 'Database not configured. Please add a PostgreSQL database in Railway.' });
+  }
+  
   try {
     const { question, choices } = req.body;
     
@@ -82,7 +112,7 @@ app.post('/api/config', async (req, res) => {
     });
   } catch (error) {
     console.error('Error saving config:', error);
-    res.status(500).json({ error: 'Failed to save configuration' });
+    res.status(500).json({ error: 'Failed to save configuration: ' + error.message });
   }
 });
 

@@ -366,7 +366,13 @@ async function saveConfiguration() {
         // Fallback to localStorage if server fails
         localStorage.setItem('higherLowerChoices', JSON.stringify(choices));
         localStorage.setItem('higherLowerQuestion', question || 'Which is higher or lower?');
-        showMessage('Saved locally (server unavailable). Configuration will sync when server is available.', 'error');
+        
+        // Check if it's a network error or server error
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            showMessage('Server unavailable. Saved locally. Make sure the server is running and accessible.', 'error');
+        } else {
+            showMessage('Error saving to server: ' + error.message + '. Saved locally as backup.', 'error');
+        }
     }
 }
 
