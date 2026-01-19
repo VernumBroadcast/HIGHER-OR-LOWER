@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Higher or Lower - Admin</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <h1>Higher or Lower - Admin Panel</h1>
+        
+        <div class="instructions">
+            <p>Add up to 15 countries with their rankings and reveal numbers. All 15 flags are automatically available.</p>
+        </div>
+
+        <form id="adminForm">
+            <div class="question-section">
+                <label for="questionInput" class="question-label">Question/Header:</label>
+                <input type="text" id="questionInput" class="question-input" placeholder="e.g., Which country has a higher population?" value="">
+            </div>
+
+            <div id="choicesContainer">
+                <!-- Choices will be dynamically added here -->
+            </div>
+            
+            <div class="action-buttons">
+                <button type="button" id="addChoiceBtn" class="btn btn-add">Add Choice</button>
+                <button type="button" id="addAllBtn" class="btn btn-add-all">Add All Countries</button>
+            </div>
+            <button type="submit" class="btn btn-save">Save Configuration</button>
+            <button type="button" id="loadBtn" class="btn btn-load">Load Configuration</button>
+        </form>
+
+        <div id="message" class="message"></div>
+
+        <div class="actions">
+            <a href="game.html" class="btn btn-play">Go to Game</a>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

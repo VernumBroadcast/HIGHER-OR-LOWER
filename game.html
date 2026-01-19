@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Higher or Lower - Game</title>
+    <link rel="stylesheet" href="game.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="question-header" id="questionHeader">Which is higher or lower?</div>
+        
+        <div class="score-board">
+            <div class="score-banner">
+                <div class="score-label">Score</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+            <div class="streak-banner">
+                <div class="streak-label">Streak</div>
+                <div class="streak-value" id="streak">0</div>
+            </div>
+        </div>
+
+        <div class="flags-container">
+            <div class="flag-wrapper" id="currentFlag">
+                <img id="currentFlagImg" src="" alt="Current Flag">
+                <div class="flag-name" id="currentFlagName"></div>
+                <div class="reveal-number" id="currentRevealNumber"></div>
+            </div>
+
+            <div class="vs-divider">VS</div>
+
+            <div class="flag-wrapper" id="nextFlag">
+                <img id="nextFlagImg" src="" alt="Next Flag">
+                <div class="flag-name" id="nextFlagName"></div>
+                <div class="reveal-number" id="nextRevealNumber" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="higherBtn" class="choice-btn higher">Higher</button>
+            <button id="drawBtn" class="choice-btn draw">Draw</button>
+            <button id="lowerBtn" class="choice-btn lower">Lower</button>
+        </div>
+
+        <div id="resultOverlay" class="result-overlay" style="display: none;">
+            <div class="result-content">
+                <div class="result-icon" id="resultIcon"></div>
+                <div class="result-text" id="resultText"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
