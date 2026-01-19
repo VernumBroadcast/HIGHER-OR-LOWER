@@ -169,20 +169,19 @@ function makeChoice(choice) {
         nextReveal.style.display = 'block'; // Now reveal the number
     }
     
-    // Check if correct
-    // Ranking equals reveal number (lower number = higher rank)
+    // Check if correct - compare reveal numbers directly
     let correct = false;
     let isDraw = false;
     
     if (choice === 'draw') {
-        isDraw = next.ranking === current.ranking;
+        isDraw = next.revealNumber === current.revealNumber;
         correct = isDraw;
     } else if (choice === 'higher') {
-        // Higher rank = lower reveal number
-        correct = next.ranking < current.ranking;
+        // Higher means next reveal number is higher than current
+        correct = next.revealNumber > current.revealNumber;
     } else { // lower
-        // Lower rank = higher reveal number
-        correct = next.ranking > current.ranking;
+        // Lower means next reveal number is lower than current
+        correct = next.revealNumber < current.revealNumber;
     }
     
     const resultOverlay = document.getElementById('resultOverlay');

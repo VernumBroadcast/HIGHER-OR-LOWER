@@ -94,7 +94,7 @@ body {
 .flags-container {
     display: flex;
     justify-content: space-around;
-    align-items: center;
+    align-items: flex-start;
     flex: 1;
     gap: 40px;
     margin: 20px 0;
@@ -107,16 +107,21 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 15px;
+    justify-content: flex-start;
+    align-items: center;
 }
 
 .flag-wrapper img {
     width: 100%;
     max-width: 300px;
+    max-height: 200px;
     height: auto;
     display: block;
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    object-fit: contain;
 }
+
 
 .flag-name {
     font-size: 24px;
@@ -140,10 +145,10 @@ body {
     font-weight: bold;
     color: white;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-    align-self: center;
+    align-self: flex-start;
     display: flex;
     align-items: center;
-    height: 100%;
+    margin-top: 80px;
 }
 
 .controls {
