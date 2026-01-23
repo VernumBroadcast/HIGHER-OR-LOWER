@@ -6,6 +6,12 @@ let streak = 0;
 let gameStarted = false;
 let usedIndices = []; // Track which countries have been shown in current loop
 
+// Format numbers with commas
+function formatNumber(num) {
+    if (num === null || num === undefined || isNaN(num)) return num;
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     await loadQuestion();
     await loadChoices();
@@ -121,7 +127,7 @@ function showCurrentFlag() {
     img.src = flagPath;
     img.style.display = 'block';
     name.textContent = current.country || current.name.split('/').pop().split('.')[0] || 'Unknown';
-    reveal.textContent = current.revealNumber;
+    reveal.textContent = formatNumber(current.revealNumber);
     reveal.style.display = 'block';
 }
 
@@ -179,7 +185,7 @@ function getNextFlag() {
     
     // Don't show reveal number yet - hide it until after choice
     if (nextReveal) {
-        nextReveal.textContent = nextFlag.revealNumber; // Store the value but hide it
+        nextReveal.textContent = formatNumber(nextFlag.revealNumber); // Store the formatted value but hide it
         nextReveal.style.display = 'none'; // Hide until after choice
     }
 }
@@ -222,25 +228,27 @@ function makeChoice(choice) {
     
     const currentCountry = current.country || current.name.split('/').pop().split('.')[0] || 'Unknown';
     const nextCountry = next.country || next.name.split('/').pop().split('.')[0] || 'Unknown';
+    const currentFormatted = formatNumber(current.revealNumber);
+    const nextFormatted = formatNumber(next.revealNumber);
     
     if (correct) {
         if (isDraw) {
             score++;
             streak++;
             resultIcon.textContent = '=';
-            resultText.innerHTML = `DRAW!<br><span class="result-details">${currentCountry}: ${current.revealNumber} vs ${nextCountry}: ${next.revealNumber}</span>`;
+            resultText.innerHTML = `DRAW!<br><span class="result-details">${currentCountry}: ${currentFormatted} vs ${nextCountry}: ${nextFormatted}</span>`;
             resultOverlay.className = 'result-overlay draw';
         } else {
             score++;
             streak++;
             resultIcon.textContent = '✓';
-            resultText.innerHTML = `CORRECT!<br><span class="result-details">${currentCountry}: ${current.revealNumber} vs ${nextCountry}: ${next.revealNumber}</span>`;
+            resultText.innerHTML = `CORRECT!<br><span class="result-details">${currentCountry}: ${currentFormatted} vs ${nextCountry}: ${nextFormatted}</span>`;
             resultOverlay.className = 'result-overlay correct';
         }
     } else {
         streak = 0;
         resultIcon.textContent = '✗';
-        resultText.innerHTML = `WRONG!<br><span class="result-details">${currentCountry}: ${current.revealNumber} vs ${nextCountry}: ${next.revealNumber}</span>`;
+        resultText.innerHTML = `WRONG!<br><span class="result-details">${currentCountry}: ${currentFormatted} vs ${nextCountry}: ${nextFormatted}</span>`;
         resultOverlay.className = 'result-overlay incorrect';
     }
     
